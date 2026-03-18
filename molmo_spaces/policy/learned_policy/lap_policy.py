@@ -23,8 +23,7 @@ def add_euler(curr: np.ndarray, delta: np.ndarray) -> np.ndarray:
 
 
 class LAP_Policy(InferencePolicy):
-    """LAP (Language-Action Pre-training) policy client.
-    """
+    """LAP (Language-Action Pre-training) policy client."""
 
     def __init__(
         self,
@@ -91,7 +90,11 @@ class LAP_Policy(InferencePolicy):
     def obs_to_model_input(self, obs):
         prompt = self.prompt_sampler.get_prompt(self.task).lower()
 
-        exo_key = "droid_shoulder_light_randomization" if "droid_shoulder_light_randomization" in obs else "exo_camera_1"
+        exo_key = (
+            "droid_shoulder_light_randomization"
+            if "droid_shoulder_light_randomization" in obs
+            else "exo_camera_1"
+        )
         wrist_key = "wrist_camera_zed_mini" if "wrist_camera_zed_mini" in obs else "wrist_camera"
 
         position, euler = self._get_tcp_pose_and_euler()
@@ -123,7 +126,6 @@ class LAP_Policy(InferencePolicy):
             self.starting_time = time.time()
 
         if self.actions_buffer is None or self.current_buffer_index >= self.chunk_size:
-
             response = self.model.infer(model_input)
             actions = np.array(response["actions"], dtype=float)
             if actions.ndim == 1:

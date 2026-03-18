@@ -146,7 +146,16 @@ class JsonEvalRunner(ParallelRolloutRunner):
             exp_config.task_sampler_config.house_inds = [target_episode.house_index]
             exp_config.task_sampler_config.samples_per_house = 1
         else:
-            exp_config.task_sampler_config.house_inds = sorted(self._episodes_by_house.keys())
+            completed_houses = eval_params.completed_houses if eval_params is not None else set()
+            remaining_houses = sorted(
+                h for h in self._episodes_by_house.keys() if h not in completed_houses
+            )
+            if completed_houses:
+                log.info(
+                    f"Skipping {len(completed_houses)} completed houses, "
+                    f"{len(remaining_houses)} remaining."
+                )
+            exp_config.task_sampler_config.house_inds = remaining_houses
             max_episodes = max(len(eps) for eps in self._episodes_by_house.values())
             exp_config.task_sampler_config.samples_per_house = max_episodes
         exp_config.benchmark_path = self.benchmark_dir

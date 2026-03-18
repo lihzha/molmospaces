@@ -228,6 +228,11 @@ def get_args():
         help="The index of the episode to evaluate. If None, evaluates all episodes.",
     )
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume from the latest eval output directory for this config, skipping already-completed houses.",
+    )
+    parser.add_argument(
         "--add_custom_object",
         action="store_true",
         help="Add a custom object to the episode.",
@@ -246,6 +251,50 @@ def get_args():
         "If not provided, will attempt to extract from the object path but could be incorrect.",
     )
     return parser.parse_args()
+
+
+def find_latest_eval_dir(base_output_dir: Path, config_name: str) -> Path | None:
+    """Find the most recent timestamped eval directory for a given config.
+
+    Args:
+        base_output_dir: Base output directory (e.g., Path("eval_output"))
+        config_name: Config name used as subdirectory (e.g., "molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig")
+
+    Returns:
+        Path to the most recent eval directory, or None if none found.
+    """
+    config_dir = base_output_dir / config_name
+    if not config_dir.exists():
+        return None
+    timestamp_dirs = sorted(
+        (d for d in config_dir.iterdir() if d.is_dir()),
+        key=lambda d: d.name,
+    )
+    return timestamp_dirs[-1] if timestamp_dirs else None
+
+
+def get_completed_house_ids(eval_dir: Path) -> set[int]:
+    """Scan an eval output directory and return house IDs that have HDF5 output.
+
+    Args:
+        eval_dir: Path to a timestamped eval output directory.
+
+    Returns:
+        Set of integer house IDs that already have trajectory files.
+    """
+    completed = set()
+    if not eval_dir.exists():
+        return completed
+    for house_dir in eval_dir.iterdir():
+        if not house_dir.is_dir() or not house_dir.name.startswith("house_"):
+            continue
+        if any(house_dir.glob("trajectories*.h5")):
+            try:
+                house_id = int(house_dir.name.split("_")[1])
+                completed.add(house_id)
+            except (IndexError, ValueError):
+                pass
+    return completed
 
 
 def build_success_status_map(results: list[EpisodeResult]) -> dict[str, bool]:
@@ -309,6 +358,7 @@ class EvalRuntimeParams:
     add_custom_object: bool = False
     custom_object_path: str | Path | None = None
     custom_object_name: str | None = None
+    completed_houses: set[int] = field(default_factory=set)
 
 
 def create_eval_config(
@@ -393,6 +443,7 @@ def run_evaluation(
     add_custom_object: bool = False,
     custom_object_path: str | Path | None = None,
     custom_object_name: str | None = None,
+    resume: bool = False,
 ) -> EvaluationResults:
     """Run evaluation on a JSON benchmark programmatically.
 
@@ -504,11 +555,25 @@ def run_evaluation(
     # This handles cases where the registry name differs from the class name.
     timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
     config_name = config_name_from_str if config_name_from_str else eval_config_cls.__name__
+    base_output_dir = Path(output_dir) if output_dir is not None else Path("eval_output")
 
-    if output_dir is not None:
-        resolved_output_dir = Path(output_dir) / config_name / timestamp
+    # Resume: reuse the latest existing eval dir and skip already-completed houses
+    completed_houses: set[int] = set()
+    if resume:
+        latest_dir = find_latest_eval_dir(base_output_dir, config_name)
+        if latest_dir is None:
+            log.warning("--resume specified but no existing eval directory found; starting fresh.")
+            resolved_output_dir = base_output_dir / config_name / timestamp
+        else:
+            resolved_output_dir = latest_dir
+            completed_houses = get_completed_house_ids(resolved_output_dir)
+            log.info(
+                f"Resuming from {resolved_output_dir}. "
+                f"Skipping {len(completed_houses)} already-completed houses: "
+                f"{sorted(completed_houses)}"
+            )
     else:
-        resolved_output_dir = Path("eval_output") / config_name / timestamp
+        resolved_output_dir = base_output_dir / config_name / timestamp
     os.makedirs(resolved_output_dir, exist_ok=True)
 
     # Determine task horizon
@@ -544,6 +609,7 @@ def run_evaluation(
         custom_object_path=custom_object_path,
         custom_object_name=custom_object_name,
     )
+    exp_config.eval_runtime_params.completed_houses = completed_houses
     JsonEvalRunner.adjust_robot(exp_config)
 
     # Resolve checkpoint path for logging
@@ -653,6 +719,7 @@ def main() -> None:
         add_custom_object=args.add_custom_object,
         custom_object_path=args.custom_object_path,
         custom_object_name=args.custom_object_name,
+        resume=args.resume,
     )
 
     log.info(f"Evaluation complete: {results.success_count}/{results.total_count} successful")

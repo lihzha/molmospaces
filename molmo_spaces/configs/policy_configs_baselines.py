@@ -21,6 +21,7 @@ class PiPolicyConfig(BasePolicyConfig):
 
             self.policy_cls = PI_Policy
 
+
 class DreamZeroPolicyConfig(BasePolicyConfig):
     checkpoint_path: str = "checkpoints/dreamzero"
     remote_config: dict = dict(host="localhost", port=0000)
@@ -38,7 +39,9 @@ class DreamZeroPolicyConfig(BasePolicyConfig):
         super().model_post_init(__context)
         if self.policy_cls is None:
             from molmo_spaces.policy.learned_policy.dreamzero_policy import DreamZero_Policy
+
             self.policy_cls = DreamZero_Policy
+
 
 class CAPPolicyConfig(BasePolicyConfig):
     remote_config: dict = dict(host="localhost", port=8765)
@@ -58,13 +61,14 @@ class CAPPolicyConfig(BasePolicyConfig):
 
             self.policy_cls = CAP_Policy
 
+
 class LAPPolicyConfig(BasePolicyConfig):
     remote_config: dict = dict(host="localhost", port=8000)
     prompt_object_word_num: str = 1
     prompt_templates: list[str] | None = None
     grasping_type: str = "continuous"
     grasping_threshold: float = 0.5
-    chunk_size: int = 8
+    chunk_size: int = 16
 
     policy_cls: type = None
     policy_type: str = "learned"
@@ -86,6 +90,7 @@ class StereoVLAPolicyConfig(BasePolicyConfig):
         super().model_post_init(__context)
         if self.policy_cls is None:
             from molmo_spaces.policy.learned_policy.stereo_vla_policy import StereoVLA_Policy
+
             self.policy_cls = StereoVLA_Policy
 
 
