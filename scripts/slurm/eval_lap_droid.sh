@@ -12,6 +12,10 @@
 
 set -e
 
+gscp() {
+    mkdir -p "$2" && gsutil -m cp -r gs://$1/params gs://$1/assets "$2/"
+}
+
 MOLMO_DIR="/n/fs/robot-data/molmospaces"
 LAP_DIR="/n/fs/robot-data/language-action-pretraining"
 CONDA_BASE="/n/fs/robot-data/miniconda3"
@@ -21,7 +25,8 @@ echo "[$(date)] Starting eval_lap job on $(hostname)"
 # ── 1. Launch policy server in background ──────────────────────────────────
 echo "[$(date)] Starting policy server..."
 cd "$LAP_DIR"
-JAX_PLATFORMS=cuda uv run --group cuda scripts/serve_policy.py --env=LAP &
+# gscp v6_east1d/checkpoints/lap_droid/lap_droid_finetune_ki/15000 ./checkpoints/lap_droid_finetune_ki/15000
+JAX_PLATFORMS=cuda uv run --group cuda scripts/serve_policy.py policy:checkpoint --policy.config=lap --policy.dir=./checkpoints/lap_droid_finetune_ki/15000 &
 SERVER_PID=$!
 echo "Policy server PID: $SERVER_PID"
 
@@ -50,8 +55,7 @@ MUJOCO_GL=egl PYOPENGL_PLATFORM=egl python molmo_spaces/evaluation/eval_main.py 
     molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig \
     --benchmark_dir assets/benchmarks/molmospaces-bench-v1/procthor-10k/FrankaPickDroidMiniBench/FrankaPickDroidMiniBench_json_benchmark_20251231 \
     --task_horizon_steps 450 \
-    --num_workers 5 \
-    --resume
+    --num_workers 3
 EVAL_EXIT=$?
 
 # ── 4. Cleanup ─────────────────────────────────────────────────────────────

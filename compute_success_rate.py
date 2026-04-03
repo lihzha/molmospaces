@@ -4,7 +4,13 @@ import sys
 
 import h5py
 
-eval_dir = "/home/irom-lab/projects/molmospaces/eval_output/molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig/20260312_165709"
+eval_dir = "eval_output/molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig/20260318_142321"
+# eval_dir = "eval_output/molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEval12Config/20260318_143843"
+# eval_dir = "eval_output/molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEval8Config/20260318_143937"
+
+# eval_dir = "eval_output/molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig/20260321_113016"
+# eval_dir = "eval_output/molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig/20260323_221826"
+
 
 h5_files = sorted(glob.glob(f"{eval_dir}/**/*.h5", recursive=True))
 

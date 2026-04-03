@@ -36,6 +36,8 @@ from molmo_spaces.configs.policy_configs_baselines import (
     CAPPolicyConfig,
     DreamZeroPolicyConfig,
     LAPPolicyConfig,
+    LAPPolicy8Config,
+    LAPPolicy12Config,
     PiPolicyConfig,
     StereoVLAPolicyConfig,
     TeleopPolicyConfig,
@@ -165,6 +167,23 @@ class LAPPolicyEvalConfig(JsonBenchmarkEvalConfig):
         super().model_post_init(__context)
         self.robot_config.action_noise_config.enabled = False
 
+class LAPPolicyEval8Config(JsonBenchmarkEvalConfig):
+    robot_config: FrankaRobotConfig = FrankaRobotConfig()
+    policy_config: LAPPolicyConfig = LAPPolicy8Config()
+    policy_dt_ms: float = 100.0
+
+    def model_post_init(self, __context):
+        super().model_post_init(__context)
+        self.robot_config.action_noise_config.enabled = False
+
+class LAPPolicyEval12Config(JsonBenchmarkEvalConfig):
+    robot_config: FrankaRobotConfig = FrankaRobotConfig()
+    policy_config: LAPPolicyConfig = LAPPolicy12Config()
+    policy_dt_ms: float = 100.0
+
+    def model_post_init(self, __context):
+        super().model_post_init(__context)
+        self.robot_config.action_noise_config.enabled = False
 
 class StereoVLAPolicyEvalConfig(JsonBenchmarkEvalConfig):
     robot_config: FrankaPandaRobotConfig = FrankaPandaRobotConfig()

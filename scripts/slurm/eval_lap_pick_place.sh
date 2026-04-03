@@ -1,5 +1,5 @@
 #!/bin/bash
-#SBATCH --job-name=eval_lap
+#SBATCH --job-name=eval_lap_pick_place
 #SBATCH --output=eval_output/slurm_%j.log
 #SBATCH --error=eval_output/slurm_%j.err
 #SBATCH --time=24:00:00
@@ -16,7 +16,7 @@ MOLMO_DIR="/n/fs/robot-data/molmospaces"
 LAP_DIR="/n/fs/robot-data/language-action-pretraining"
 CONDA_BASE="/n/fs/robot-data/miniconda3"
 
-echo "[$(date)] Starting eval_lap job on $(hostname)"
+echo "[$(date)] Starting eval_lap_pick_place job on $(hostname)"
 
 # ── 1. Launch policy server in background ──────────────────────────────────
 echo "[$(date)] Starting policy server..."
@@ -48,9 +48,9 @@ conda activate mlspaces
 
 MUJOCO_GL=egl PYOPENGL_PLATFORM=egl python molmo_spaces/evaluation/eval_main.py \
     molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig \
-    --benchmark_dir assets/benchmarks/molmospaces-bench-v1/procthor-10k/FrankaPickDroidMiniBench/FrankaPickDroidMiniBench_json_benchmark_20251231 \
-    --task_horizon_steps 450 \
-    --num_workers 5 \
+    --benchmark_dir assets/benchmarks/molmospaces-bench-v1/procthor-10k/FrankaPickandPlaceDroidMiniBench/FrankaPickandPlaceDroidMiniBench_20260111_json_benchmark \
+    --task_horizon_steps 600 \
+    --num_workers 3 \
     --resume
 EVAL_EXIT=$?
 

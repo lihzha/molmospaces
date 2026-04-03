@@ -47,11 +47,10 @@ source "$CONDA_BASE/etc/profile.d/conda.sh"
 conda activate mlspaces
 
 MUJOCO_GL=egl PYOPENGL_PLATFORM=egl python molmo_spaces/evaluation/eval_main.py \
-    molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEvalConfig \
+    molmo_spaces.evaluation.configs.evaluation_configs:LAPPolicyEval12Config \
     --benchmark_dir assets/benchmarks/molmospaces-bench-v1/procthor-10k/FrankaPickDroidMiniBench/FrankaPickDroidMiniBench_json_benchmark_20251231 \
     --task_horizon_steps 450 \
-    --num_workers 5 \
-    --resume
+    --num_workers 5
 EVAL_EXIT=$?
 
 # ── 4. Cleanup ─────────────────────────────────────────────────────────────

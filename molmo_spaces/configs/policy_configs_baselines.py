@@ -81,6 +81,43 @@ class LAPPolicyConfig(BasePolicyConfig):
 
             self.policy_cls = LAP_Policy
 
+class LAPPolicy8Config(BasePolicyConfig):
+    remote_config: dict = dict(host="localhost", port=8000)
+    prompt_object_word_num: str = 1
+    prompt_templates: list[str] | None = None
+    grasping_type: str = "continuous"
+    grasping_threshold: float = 0.5
+    chunk_size: int = 8
+
+    policy_cls: type = None
+    policy_type: str = "learned"
+
+    def model_post_init(self, __context) -> None:
+        """Set policy_cls after initialization to avoid circular imports."""
+        super().model_post_init(__context)
+        if self.policy_cls is None:
+            from molmo_spaces.policy.learned_policy.lap_policy import LAP_Policy
+
+            self.policy_cls = LAP_Policy
+
+class LAPPolicy12Config(BasePolicyConfig):
+    remote_config: dict = dict(host="localhost", port=8000)
+    prompt_object_word_num: str = 1
+    prompt_templates: list[str] | None = None
+    grasping_type: str = "continuous"
+    grasping_threshold: float = 0.5
+    chunk_size: int = 12
+
+    policy_cls: type = None
+    policy_type: str = "learned"
+
+    def model_post_init(self, __context) -> None:
+        """Set policy_cls after initialization to avoid circular imports."""
+        super().model_post_init(__context)
+        if self.policy_cls is None:
+            from molmo_spaces.policy.learned_policy.lap_policy import LAP_Policy
+
+            self.policy_cls = LAP_Policy
 
 class StereoVLAPolicyConfig(BasePolicyConfig):
     policy_cls: type = None
