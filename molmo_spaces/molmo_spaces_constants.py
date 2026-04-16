@@ -52,7 +52,7 @@ if str2bool(os.environ.get("MLSPACES_SINGLE_THREAD_PROCS", "False")):
 
 ABS_PATH_OF_TOP_LEVEL_MOLMO_SPACES_DIR = Path(__file__).resolve().parent.parent
 
-_DATA_CACHE_DEFAULT = Path("~/.cache/molmo-spaces-resources").expanduser()
+_DATA_CACHE_DEFAULT = Path("/n/fs/robot-data/cache/molmo-spaces-resources").expanduser()
 DATA_CACHE_DIR = Path(os.environ.get("MLSPACES_CACHE_DIR", _DATA_CACHE_DEFAULT))
 
 ASSETS_DIR = Path(

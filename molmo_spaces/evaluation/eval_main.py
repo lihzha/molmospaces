@@ -206,6 +206,11 @@ def get_args():
         help="Output directory for evaluation results. Defaults to eval_output/<config>/<timestamp>.",
     )
     parser.add_argument(
+        "--resume",
+        action="store_true",
+        help="Resume evaluation from an existing output_dir. When set, uses output_dir directly without appending config_name/timestamp. Skips houses that already have completed trajectories.",
+    )
+    parser.add_argument(
         "--num_workers",
         type=int,
         default=1,
@@ -448,6 +453,7 @@ def run_evaluation(
     add_custom_object: bool = False,
     custom_object_path: str | Path | None = None,
     custom_object_name: str | None = None,
+    resume: bool = False,
 ) -> EvaluationResults:
     """Run evaluation on a JSON benchmark programmatically.
 
@@ -475,6 +481,8 @@ def run_evaluation(
         custom_object_path: Path to the custom object XML file. Required if add_custom_object is True.
         custom_object_name: Natural language name for the custom object (e.g., 'lemon', 'cup').
             If not provided, will attempt to extract from the object path.
+        resume: If True, use output_dir directly without appending config_name/timestamp.
+            This allows resuming from a previous run by skipping houses with existing trajectories.
 
     Returns:
         EvaluationResults containing success counts, output paths, and per-episode details.
@@ -570,7 +578,16 @@ def run_evaluation(
     else:
         config_name = eval_config_cls.__name__
 
-    if output_dir is not None:
+    if resume:
+        if output_dir is None:
+            raise ValueError("--resume requires --output_dir to specify the directory to resume from")
+        resolved_output_dir = Path(output_dir)
+        if not resolved_output_dir.exists():
+            raise FileNotFoundError(
+                f"Cannot resume: output directory does not exist: {resolved_output_dir}"
+            )
+        log.info(f"Resuming evaluation from existing directory: {resolved_output_dir}")
+    elif output_dir is not None:
         resolved_output_dir = Path(output_dir) / config_name / timestamp
     else:
         resolved_output_dir = Path("eval_output") / config_name / timestamp
@@ -738,6 +755,7 @@ def main() -> None:
         add_custom_object=args.add_custom_object,
         custom_object_path=args.custom_object_path,
         custom_object_name=args.custom_object_name,
+        resume=args.resume,
     )
 
     log.info(f"Evaluation complete: {results.success_count}/{results.total_count} successful")
