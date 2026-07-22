@@ -756,6 +756,7 @@ def main() -> None:
         custom_object_path=args.custom_object_path,
         custom_object_name=args.custom_object_name,
         resume=args.resume,
+        max_episodes=args.max_episodes,
     )
 
     log.info(f"Evaluation complete: {results.success_count}/{results.total_count} successful")
